@@ -31,3 +31,17 @@ spec:
     headers: { request: { set: { x-origin: corp } } }
     route: [{ destination: { host: corpsvc2, port: { number: 8080 } } }]
   - route: [{ destination: { host: portal-corp, port: { number: 8080 } } }]
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: { name: extsvc-routes, namespace: apps }
+spec:
+  hosts: ["extsvc.windevopscloud.com"]
+  gateways: ["istio-ingress-pub/pub-gw"]
+  http:
+  - match: [{ uri: { prefix: /api/extsvc1 } }]
+    rewrite: { uri: / }
+    route: [{ destination: { host: extsvc1, port: { number: 8080 } } }]
+  - match: [{ uri: { prefix: /api/extsvc2 } }]
+    rewrite: { uri: / }
+    route: [{ destination: { host: extsvc2, port: { number: 8080 } } }]
