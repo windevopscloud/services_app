@@ -5,6 +5,19 @@ export KUBECONFIG=/root/.kube/config
 
 kubectl apply -f k8s/namespace.yaml
 
+# Client credentials for the two services that call the public extsvc (Secrets Manager -> k8s secret)
+source deploy/portal.env
+CLIENTS=$(aws secretsmanager get-secret-value --secret-id "cognito/poc/external-clients" --region us-east-1 --query SecretString --output text)
+for S in intsvc3 intsvc4; do
+  case "$S" in intsvc3) SC="ext-api/extsvc1.invoke" ;; intsvc4) SC="ext-api/extsvc2.invoke" ;; esac
+  CID=$(echo "$CLIENTS" | python3 -c "import sys,json;print(json.load(sys.stdin)['$S']['client_id'])")
+  CSEC=$(echo "$CLIENTS" | python3 -c "import sys,json;print(json.load(sys.stdin)['$S']['client_secret'])")
+  kubectl -n apps create secret generic "client-${S}" \
+    --from-literal=CLIENT_ID="$CID" --from-literal=CLIENT_SECRET="$CSEC" \
+    --from-literal=TOKEN_URL="https://${EXT_DOMAIN}/oauth2/token" --from-literal=SCOPE="$SC" \
+    --dry-run=client -o yaml | kubectl apply -f -
+done
+
 for SVC in intsvc1 intsvc2 intsvc3 intsvc4 corpsvc1 corpsvc2 extsvc1 extsvc2; do
   case "$SVC" in
     intsvc1|corpsvc1) DS=intsvc3 ;;
@@ -61,6 +74,11 @@ sed "s|__EXT_ISSUER__|${EXT_ISSUER}|g; s|__EXT_JWKS__|${EXT_JWKS}|g; s|__CORP_IS
   k8s/auth-mesh.tmpl.yaml > /tmp/auth-mesh.yaml
 if grep -q "__EXT_\|__CORP_" /tmp/auth-mesh.yaml; then echo "Unreplaced tokens in auth-mesh"; exit 1; fi
 kubectl apply -f /tmp/auth-mesh.yaml
+
+# Egress path (x-origin ext -> egress gateway -> public extsvc) and Cognito token host
+sed "s|__EXT_DOMAIN__|${EXT_DOMAIN}|g" k8s/egress.tmpl.yaml > /tmp/egress.yaml
+if grep -q "__EXT_" /tmp/egress.yaml; then echo "Unreplaced tokens in egress"; exit 1; fi
+kubectl apply -f /tmp/egress.yaml
 
 # Public ALB for extsvc (cert imported to ACM earlier, ARN from SSM via portal.env)
 sed "s|__EXTSVC_CERT_ARN__|${EXTSVC_CERT_ARN}|g" k8s/ingress-pub.yaml > /tmp/ingress-pub.yaml

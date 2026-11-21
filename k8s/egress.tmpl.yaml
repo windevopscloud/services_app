@@ -1,0 +1,85 @@
+# Calls from intsvc3/intsvc4 to extsvc with x-origin "ext" leave the cluster:
+#   app -> sidecar -> (mTLS) egress gateway -> TLS to the public ALB at extsvc.windevopscloud.com
+# x-origin "corp" keeps going straight over the mesh. Everything else outbound is blocked (REGISTRY_ONLY).
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata: { name: extsvc-public, namespace: istio-egress }
+spec:
+  hosts: ["extsvc.windevopscloud.com"]
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+  - { number: 80, name: http, protocol: HTTP, targetPort: 443 }
+  - { number: 443, name: https, protocol: HTTPS }
+---
+# Cognito token endpoint, called by the service itself (HTTPS passes straight through)
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata: { name: cognito-token, namespace: apps }
+spec:
+  hosts: ["__EXT_DOMAIN__"]
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+  - { number: 443, name: https, protocol: HTTPS }
+---
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata: { name: egress-gw-gateway, namespace: istio-egress }
+spec:
+  selector: { istio: egress-gw }
+  servers:
+  - port: { number: 443, name: tls-mtls, protocol: HTTPS }
+    hosts: ["extsvc.windevopscloud.com"]
+    tls: { mode: ISTIO_MUTUAL }
+---
+# sidecar -> egress gateway over mTLS
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata: { name: to-egress-gw, namespace: istio-egress }
+spec:
+  host: egress-gw.istio-egress.svc.cluster.local
+  trafficPolicy:
+    tls: { mode: ISTIO_MUTUAL, sni: extsvc.windevopscloud.com }
+---
+# egress gateway -> public ALB (TLS origination)
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata: { name: originate-tls, namespace: istio-egress }
+spec:
+  host: extsvc.windevopscloud.com
+  trafficPolicy:
+    portLevelSettings:
+    - port: { number: 80 }
+      tls: { mode: SIMPLE, sni: extsvc.windevopscloud.com }
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: { name: egress-to-external, namespace: istio-egress }
+spec:
+  hosts: ["extsvc.windevopscloud.com"]
+  gateways: ["istio-egress/egress-gw-gateway"]
+  http:
+  - route: [{ destination: { host: extsvc.windevopscloud.com, port: { number: 80 } } }]
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: { name: extsvc1-split, namespace: apps }
+spec:
+  hosts: ["extsvc1.apps.svc.cluster.local"]
+  http:
+  - match: [{ headers: { x-origin: { exact: ext } } }]
+    rewrite: { uri: /api/extsvc1, authority: extsvc.windevopscloud.com }
+    route: [{ destination: { host: egress-gw.istio-egress.svc.cluster.local, port: { number: 443 } } }]
+  - route: [{ destination: { host: extsvc1.apps.svc.cluster.local, port: { number: 8080 } } }]
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: { name: extsvc2-split, namespace: apps }
+spec:
+  hosts: ["extsvc2.apps.svc.cluster.local"]
+  http:
+  - match: [{ headers: { x-origin: { exact: ext } } }]
+    rewrite: { uri: /api/extsvc2, authority: extsvc.windevopscloud.com }
+    route: [{ destination: { host: egress-gw.istio-egress.svc.cluster.local, port: { number: 443 } } }]
+  - route: [{ destination: { host: extsvc2.apps.svc.cluster.local, port: { number: 8080 } } }]
