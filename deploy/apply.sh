@@ -19,9 +19,36 @@ for SVC in intsvc1 intsvc2 intsvc3 intsvc4 corpsvc1 corpsvc2 extsvc1 extsvc2; do
   kubectl apply -f "/tmp/${SVC}.yaml"
 done
 
+# Portals: static login pages. Cognito values come from SSM, written into portal.env by the workflow.
+# shellcheck disable=SC1091
+source deploy/portal.env
+
+render_portal() {
+  P="$1"; CLIENT_ID="$2"; DOMAIN="$3"; TITLE="$4"; SCOPE="$5"; REDIRECT="$6"; BUTTONS="$7"
+  cat > "/tmp/config-${P}.js" <<CFG
+window.PORTAL = {
+  name: "${P}", title: "${TITLE}", clientId: "${CLIENT_ID}", cognitoDomain: "${DOMAIN}",
+  scope: "${SCOPE}", redirectPath: "${REDIRECT}", buttons: ${BUTTONS}
+};
+CFG
+  kubectl -n apps create configmap "portal-${P}-config" --from-file=config.js="/tmp/config-${P}.js" \
+    --dry-run=client -o yaml | kubectl apply -f -
+  sed "s|__P__|${P}|g" k8s/portal.tmpl.yaml > "/tmp/portal-${P}.yaml"
+  if grep -q "__" "/tmp/portal-${P}.yaml"; then echo "Unreplaced tokens in portal-${P}"; exit 1; fi
+  kubectl apply -f "/tmp/portal-${P}.yaml"
+}
+
+render_portal ext  "$EXT_CLIENT_ID"  "$EXT_DOMAIN"  "External portal" \
+  "openid ext-api/intsvc1.invoke ext-api/intsvc2.invoke" "/success/intsvc-list/" \
+  '[{"label":"intsvc1","path":"/api/intsvc1"},{"label":"intsvc2","path":"/api/intsvc2"}]'
+
+render_portal corp "$CORP_CLIENT_ID" "$CORP_DOMAIN" "Corporate portal" \
+  "openid corp-api/corpsvc1.invoke corp-api/corpsvc2.invoke" "/success/corpsvc-list/" \
+  '[{"label":"corpsvc1","path":"/api/corpsvc1"},{"label":"corpsvc2","path":"/api/corpsvc2"}]'
+
 kubectl apply -f k8s/routes.yaml
 
-for SVC in intsvc1 intsvc2 intsvc3 intsvc4 corpsvc1 corpsvc2 extsvc1 extsvc2; do
+for SVC in portal-ext portal-corp intsvc1 intsvc2 intsvc3 intsvc4 corpsvc1 corpsvc2 extsvc1 extsvc2; do
   kubectl rollout status deployment/"${SVC}" -n apps --timeout=300s
 done
 kubectl get pods -n apps

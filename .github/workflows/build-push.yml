@@ -10,7 +10,7 @@ on:
         default: "no"
   push:
     branches: [main]
-    paths: ["services/**"]
+    paths: ["services/**", "portal/**"]
 
 env:
   AWS_REGION: us-east-1
@@ -41,6 +41,16 @@ jobs:
           done
           echo "Pushed ${TAG} to: ${SERVICES}" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Build portal, push to portal-ext and portal-corp
+        run: |
+          TAG="${GITHUB_SHA::7}"
+          docker build -t "local-portal:${TAG}" portal/
+          for P in portal-ext portal-corp; do
+            docker tag "local-portal:${TAG}" "${REGISTRY}/${P}:${TAG}"
+            docker push "${REGISTRY}/${P}:${TAG}"
+          done
+          echo "Pushed ${TAG} to: portal-ext portal-corp" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Docker logout
         if: always()
         run: docker logout "$REGISTRY" || true
@@ -57,7 +67,14 @@ jobs:
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
           TAG="${GITHUB_SHA::7}"
-          sed -i "s|__REGISTRY__|${REGISTRY}|g; s|__IMAGE_TAG__|${TAG}|g" k8s/service.tmpl.yaml
+          sed -i "s|__REGISTRY__|${REGISTRY}|g; s|__IMAGE_TAG__|${TAG}|g" k8s/service.tmpl.yaml k8s/portal.tmpl.yaml
+          ssm() { aws ssm get-parameter --name "/${ENVIRONMENT}/cognito/$1" --query Parameter.Value --output text; }
+          {
+            echo "EXT_CLIENT_ID=$(ssm ext/web-client-id)"
+            echo "EXT_DOMAIN=$(ssm ext/domain)"
+            echo "CORP_CLIENT_ID=$(ssm corp/web-client-id)"
+            echo "CORP_DOMAIN=$(ssm corp/domain)"
+          } > deploy/portal.env
           BUCKET="bundles-${ACCOUNT_ID}-${ENVIRONMENT}"
           KEY="releases/services-app/${TAG}-${GITHUB_RUN_NUMBER}.tgz"
           echo "BUCKET=${BUCKET}" >> "$GITHUB_ENV"

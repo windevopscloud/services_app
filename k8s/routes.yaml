@@ -13,6 +13,7 @@ spec:
     rewrite: { uri: / }
     headers: { request: { set: { x-origin: ext } } }
     route: [{ destination: { host: intsvc2, port: { number: 8080 } } }]
+  - route: [{ destination: { host: portal-ext, port: { number: 8080 } } }]
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -29,3 +30,4 @@ spec:
     rewrite: { uri: / }
     headers: { request: { set: { x-origin: corp } } }
     route: [{ destination: { host: corpsvc2, port: { number: 8080 } } }]
+  - route: [{ destination: { host: portal-corp, port: { number: 8080 } } }]

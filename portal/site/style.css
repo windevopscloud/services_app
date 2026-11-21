@@ -1,0 +1,14 @@
+:root { --bg:#f6f7f9; --fg:#1b2430; --card:#ffffff; --line:#d9dee5; --accent:#1f5fbf; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#12161c; --fg:#e6e9ee; --card:#1b212a; --line:#2c3541; --accent:#6aa2ff; }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; }
+main { max-width:720px; margin:0 auto; padding:32px 16px; }
+h1 { font-size:22px; margin:0 0 4px; }
+.sub { color:#7b8696; margin:0 0 24px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:16px; }
+button { font:inherit; background:var(--accent); color:#fff; border:0; border-radius:6px; padding:8px 14px; margin:0 8px 8px 0; cursor:pointer; }
+button.secondary { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+pre { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:12px; overflow:auto; max-height:320px; margin:8px 0 0; }
+.meta { font-size:13px; color:#7b8696; }
