@@ -73,8 +73,9 @@ jobs:
           EXT_DOMAIN=$(ssm ext/domain)
           CORP_CLIENT_ID=$(ssm corp/web-client-id)
           CORP_DOMAIN=$(ssm corp/domain)
-          printf 'EXT_CLIENT_ID=%s\nEXT_DOMAIN=%s\nCORP_CLIENT_ID=%s\nCORP_DOMAIN=%s\n' \
-            "$EXT_CLIENT_ID" "$EXT_DOMAIN" "$CORP_CLIENT_ID" "$CORP_DOMAIN" > deploy/portal.env
+          EXTSVC_CERT_ARN=$(aws ssm get-parameter --name "/${ENVIRONMENT}/acm/extsvc-cert-arn" --query Parameter.Value --output text)
+          printf 'EXT_CLIENT_ID=%s\nEXT_DOMAIN=%s\nCORP_CLIENT_ID=%s\nCORP_DOMAIN=%s\nEXTSVC_CERT_ARN=%s\n' \
+            "$EXT_CLIENT_ID" "$EXT_DOMAIN" "$CORP_CLIENT_ID" "$CORP_DOMAIN" "$EXTSVC_CERT_ARN" > deploy/portal.env
           BUCKET="bundles-${ACCOUNT_ID}-${ENVIRONMENT}"
           KEY="releases/services-app/${TAG}-${GITHUB_RUN_NUMBER}.tgz"
           echo "BUCKET=${BUCKET}" >> "$GITHUB_ENV"

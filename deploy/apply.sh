@@ -49,6 +49,11 @@ render_portal corp "$CORP_CLIENT_ID" "$CORP_DOMAIN" "Corporate portal" \
 kubectl apply -f k8s/routes.yaml
 kubectl apply -f k8s/policy.yaml
 
+# Public ALB for extsvc (cert imported to ACM earlier, ARN from SSM via portal.env)
+sed "s|__EXTSVC_CERT_ARN__|${EXTSVC_CERT_ARN}|g" k8s/ingress-pub.yaml > /tmp/ingress-pub.yaml
+if grep -q "__" /tmp/ingress-pub.yaml; then echo "Unreplaced tokens in ingress-pub"; exit 1; fi
+kubectl apply -f /tmp/ingress-pub.yaml
+
 for SVC in portal-ext portal-corp intsvc1 intsvc2 intsvc3 intsvc4 corpsvc1 corpsvc2 extsvc1 extsvc2; do
   kubectl rollout status deployment/"${SVC}" -n apps --timeout=300s
 done
