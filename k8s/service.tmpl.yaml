@@ -23,6 +23,8 @@ spec:
         env:
         - { name: SERVICE, value: __NAME__ }
         - { name: DOWNSTREAM, value: "__DOWNSTREAM__" }
+        envFrom:
+        - secretRef: { name: client-__NAME__, optional: true }
         resources:
           requests: { cpu: 50m, memory: 64Mi }
           limits: { cpu: 250m, memory: 128Mi }
