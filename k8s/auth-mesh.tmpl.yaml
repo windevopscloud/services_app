@@ -1,0 +1,53 @@
+# intsvc3 / intsvc4 accept a call only when BOTH hold:
+#  1) it comes from the expected caller identity (mTLS service account), and
+#  2) it carries a valid Cognito access token issued to the portal client of that side (ext or corp).
+# Signing keys are embedded (nodes have no internet to fetch them).
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata: { name: jwt, namespace: apps }
+spec:
+  jwtRules:
+  - issuer: "__EXT_ISSUER__"
+    jwks: '__EXT_JWKS__'
+  - issuer: "__CORP_ISSUER__"
+    jwks: '__CORP_JWKS__'
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-intsvc3, namespace: apps }
+spec:
+  selector: { matchLabels: { app: intsvc3 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source: { principals: ["cluster.local/ns/apps/sa/intsvc1"] }
+    to:
+    - operation: { methods: ["GET", "POST"] }
+    when:
+    - { key: "request.auth.claims[client_id]", values: ["__EXT_CLIENT_ID__"] }
+  - from:
+    - source: { principals: ["cluster.local/ns/apps/sa/corpsvc1"] }
+    to:
+    - operation: { methods: ["GET", "POST"] }
+    when:
+    - { key: "request.auth.claims[client_id]", values: ["__CORP_CLIENT_ID__"] }
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-intsvc4, namespace: apps }
+spec:
+  selector: { matchLabels: { app: intsvc4 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source: { principals: ["cluster.local/ns/apps/sa/intsvc2"] }
+    to:
+    - operation: { methods: ["GET", "POST"] }
+    when:
+    - { key: "request.auth.claims[client_id]", values: ["__EXT_CLIENT_ID__"] }
+  - from:
+    - source: { principals: ["cluster.local/ns/apps/sa/corpsvc2"] }
+    to:
+    - operation: { methods: ["GET", "POST"] }
+    when:
+    - { key: "request.auth.claims[client_id]", values: ["__CORP_CLIENT_ID__"] }

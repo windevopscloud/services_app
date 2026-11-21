@@ -3,7 +3,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 SERVICE = os.environ.get("SERVICE", "unknown")
 DOWNSTREAM = os.environ.get("DOWNSTREAM", "")
-FORWARD = ("x-origin", "x-request-id")
+FORWARD = ("x-origin", "x-request-id", "authorization")
 
 
 class H(BaseHTTPRequestHandler):

@@ -49,6 +49,19 @@ render_portal corp "$CORP_CLIENT_ID" "$CORP_DOMAIN" "Corporate portal" \
 kubectl apply -f k8s/routes.yaml
 kubectl apply -f k8s/policy.yaml
 
+# extsvc token check at the public gateway (Cognito keys fetched by the workflow)
+EXT_JWKS=$(cat deploy/ext-jwks.json)
+sed "s|__EXT_ISSUER__|${EXT_ISSUER}|g; s|__EXT_JWKS__|${EXT_JWKS}|g" k8s/auth-pub.tmpl.yaml > /tmp/auth-pub.yaml
+if grep -q "__EXT_" /tmp/auth-pub.yaml; then echo "Unreplaced tokens in auth-pub"; exit 1; fi
+kubectl apply -f /tmp/auth-pub.yaml
+
+# intsvc3/4: caller identity + valid token (ext or corp)
+CORP_JWKS=$(cat deploy/corp-jwks.json)
+sed "s|__EXT_ISSUER__|${EXT_ISSUER}|g; s|__EXT_JWKS__|${EXT_JWKS}|g; s|__CORP_ISSUER__|${CORP_ISSUER}|g; s|__CORP_JWKS__|${CORP_JWKS}|g; s|__EXT_CLIENT_ID__|${EXT_CLIENT_ID}|g; s|__CORP_CLIENT_ID__|${CORP_CLIENT_ID}|g" \
+  k8s/auth-mesh.tmpl.yaml > /tmp/auth-mesh.yaml
+if grep -q "__EXT_\|__CORP_" /tmp/auth-mesh.yaml; then echo "Unreplaced tokens in auth-mesh"; exit 1; fi
+kubectl apply -f /tmp/auth-mesh.yaml
+
 # Public ALB for extsvc (cert imported to ACM earlier, ARN from SSM via portal.env)
 sed "s|__EXTSVC_CERT_ARN__|${EXTSVC_CERT_ARN}|g" k8s/ingress-pub.yaml > /tmp/ingress-pub.yaml
 if grep -q "__" /tmp/ingress-pub.yaml; then echo "Unreplaced tokens in ingress-pub"; exit 1; fi

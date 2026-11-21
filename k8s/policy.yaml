@@ -100,38 +100,6 @@ spec:
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: allow-intsvc3, namespace: apps }
-spec:
-  selector: { matchLabels: { app: intsvc3 } }
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals:
-        - "cluster.local/ns/apps/sa/intsvc1"
-        - "cluster.local/ns/apps/sa/corpsvc1"
-    to:
-    - operation:
-        methods: ["GET", "POST"]
----
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
-metadata: { name: allow-intsvc4, namespace: apps }
-spec:
-  selector: { matchLabels: { app: intsvc4 } }
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals:
-        - "cluster.local/ns/apps/sa/intsvc2"
-        - "cluster.local/ns/apps/sa/corpsvc2"
-    to:
-    - operation:
-        methods: ["GET", "POST"]
----
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
 metadata: { name: allow-extsvc1, namespace: apps }
 spec:
   selector: { matchLabels: { app: extsvc1 } }
@@ -141,7 +109,6 @@ spec:
     - source:
         principals:
         - "cluster.local/ns/apps/sa/intsvc3"
-        - "cluster.local/ns/istio-ingress-pub/sa/ingress-pub"
     to:
     - operation:
         methods: ["GET", "POST"]
@@ -157,7 +124,6 @@ spec:
     - source:
         principals:
         - "cluster.local/ns/apps/sa/intsvc4"
-        - "cluster.local/ns/istio-ingress-pub/sa/ingress-pub"
     to:
     - operation:
         methods: ["GET", "POST"]
