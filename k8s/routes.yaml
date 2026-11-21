@@ -1,0 +1,31 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: { name: intsvc-routes, namespace: apps }
+spec:
+  hosts: ["intsvc.windevopscloud.com"]
+  gateways: ["istio-ingress-ext/ext-gw"]
+  http:
+  - match: [{ uri: { prefix: /api/intsvc1 } }]
+    rewrite: { uri: / }
+    headers: { request: { set: { x-origin: ext } } }
+    route: [{ destination: { host: intsvc1, port: { number: 8080 } } }]
+  - match: [{ uri: { prefix: /api/intsvc2 } }]
+    rewrite: { uri: / }
+    headers: { request: { set: { x-origin: ext } } }
+    route: [{ destination: { host: intsvc2, port: { number: 8080 } } }]
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata: { name: corpsvc-routes, namespace: apps }
+spec:
+  hosts: ["corpsvc.windevopscloud.com"]
+  gateways: ["istio-ingress-corp/corp-gw"]
+  http:
+  - match: [{ uri: { prefix: /api/corpsvc1 } }]
+    rewrite: { uri: / }
+    headers: { request: { set: { x-origin: corp } } }
+    route: [{ destination: { host: corpsvc1, port: { number: 8080 } } }]
+  - match: [{ uri: { prefix: /api/corpsvc2 } }]
+    rewrite: { uri: / }
+    headers: { request: { set: { x-origin: corp } } }
+    route: [{ destination: { host: corpsvc2, port: { number: 8080 } } }]
