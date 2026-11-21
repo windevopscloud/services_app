@@ -47,6 +47,7 @@ render_portal corp "$CORP_CLIENT_ID" "$CORP_DOMAIN" "Corporate portal" \
   '[{"label":"corpsvc1","path":"/api/corpsvc1"},{"label":"corpsvc2","path":"/api/corpsvc2"}]'
 
 kubectl apply -f k8s/routes.yaml
+kubectl apply -f k8s/policy.yaml
 
 for SVC in portal-ext portal-corp intsvc1 intsvc2 intsvc3 intsvc4 corpsvc1 corpsvc2 extsvc1 extsvc2; do
   kubectl rollout status deployment/"${SVC}" -n apps --timeout=300s

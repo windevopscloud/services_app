@@ -1,0 +1,161 @@
+# Mesh policy for the apps namespace.
+# 1) mTLS is mandatory between workloads.
+# 2) Every workload only accepts calls from the identities listed below (default deny).
+# Identity = Kubernetes service account, shown to Istio as cluster.local/ns/<namespace>/sa/<name>.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: default, namespace: apps }
+spec:
+  mtls: { mode: STRICT }
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-portal-ext, namespace: apps }
+spec:
+  selector: { matchLabels: { app: portal-ext } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/istio-ingress-ext/sa/ingress-ext"
+    to:
+    - operation:
+        methods: ["GET", "HEAD"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-portal-corp, namespace: apps }
+spec:
+  selector: { matchLabels: { app: portal-corp } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/istio-ingress-corp/sa/ingress-corp"
+    to:
+    - operation:
+        methods: ["GET", "HEAD"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-intsvc1, namespace: apps }
+spec:
+  selector: { matchLabels: { app: intsvc1 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/istio-ingress-ext/sa/ingress-ext"
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-intsvc2, namespace: apps }
+spec:
+  selector: { matchLabels: { app: intsvc2 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/istio-ingress-ext/sa/ingress-ext"
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-corpsvc1, namespace: apps }
+spec:
+  selector: { matchLabels: { app: corpsvc1 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/istio-ingress-corp/sa/ingress-corp"
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-corpsvc2, namespace: apps }
+spec:
+  selector: { matchLabels: { app: corpsvc2 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/istio-ingress-corp/sa/ingress-corp"
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-intsvc3, namespace: apps }
+spec:
+  selector: { matchLabels: { app: intsvc3 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/apps/sa/intsvc1"
+        - "cluster.local/ns/apps/sa/corpsvc1"
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-intsvc4, namespace: apps }
+spec:
+  selector: { matchLabels: { app: intsvc4 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/apps/sa/intsvc2"
+        - "cluster.local/ns/apps/sa/corpsvc2"
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-extsvc1, namespace: apps }
+spec:
+  selector: { matchLabels: { app: extsvc1 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/apps/sa/intsvc3"
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: allow-extsvc2, namespace: apps }
+spec:
+  selector: { matchLabels: { app: extsvc2 } }
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals:
+        - "cluster.local/ns/apps/sa/intsvc4"
+    to:
+    - operation:
+        methods: ["GET", "POST"]
