@@ -9,8 +9,10 @@ spec:
   jwtRules:
   - issuer: "__EXT_ISSUER__"
     jwks: '__EXT_JWKS__'
+    forwardOriginalToken: true
   - issuer: "__CORP_ISSUER__"
     jwks: '__CORP_JWKS__'
+    forwardOriginalToken: true
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
