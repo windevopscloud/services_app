@@ -69,12 +69,12 @@ jobs:
           TAG="${GITHUB_SHA::7}"
           sed -i "s|__REGISTRY__|${REGISTRY}|g; s|__IMAGE_TAG__|${TAG}|g" k8s/service.tmpl.yaml k8s/portal.tmpl.yaml
           ssm() { aws ssm get-parameter --name "/${ENVIRONMENT}/cognito/$1" --query Parameter.Value --output text; }
-          {
-            echo "EXT_CLIENT_ID=$(ssm ext/web-client-id)"
-            echo "EXT_DOMAIN=$(ssm ext/domain)"
-            echo "CORP_CLIENT_ID=$(ssm corp/web-client-id)"
-            echo "CORP_DOMAIN=$(ssm corp/domain)"
-          } > deploy/portal.env
+          EXT_CLIENT_ID=$(ssm ext/web-client-id)
+          EXT_DOMAIN=$(ssm ext/domain)
+          CORP_CLIENT_ID=$(ssm corp/web-client-id)
+          CORP_DOMAIN=$(ssm corp/domain)
+          printf 'EXT_CLIENT_ID=%s\nEXT_DOMAIN=%s\nCORP_CLIENT_ID=%s\nCORP_DOMAIN=%s\n' \
+            "$EXT_CLIENT_ID" "$EXT_DOMAIN" "$CORP_CLIENT_ID" "$CORP_DOMAIN" > deploy/portal.env
           BUCKET="bundles-${ACCOUNT_ID}-${ENVIRONMENT}"
           KEY="releases/services-app/${TAG}-${GITHUB_RUN_NUMBER}.tgz"
           echo "BUCKET=${BUCKET}" >> "$GITHUB_ENV"
