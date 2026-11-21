@@ -38,3 +38,10 @@ metadata: { name: __NAME__, namespace: apps }
 spec:
   selector: { app: __NAME__ }
   ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata: { name: egress-access-log, namespace: istio-egress }
+spec:
+  accessLogging:
+  - providers: [{ name: envoy }]
