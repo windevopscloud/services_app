@@ -69,7 +69,7 @@ sed "s|__EXT_ISSUER__|${EXT_ISSUER}|g; s|__EXT_JWKS__|${EXT_JWKS}|g" k8s/auth-pu
 if grep -q "__EXT_" /tmp/auth-pub.yaml; then echo "Unreplaced tokens in auth-pub"; exit 1; fi
 kubectl apply -f /tmp/auth-pub.yaml
 
-# intsvc1/4: caller identity + valid token (ext or corp)
+# intsvc1/2: caller identity + valid token (ext or corp)
 CORP_JWKS=$(cat deploy/corp-jwks.json)
 sed "s|__EXT_ISSUER__|${EXT_ISSUER}|g; s|__EXT_JWKS__|${EXT_JWKS}|g; s|__CORP_ISSUER__|${CORP_ISSUER}|g; s|__CORP_JWKS__|${CORP_JWKS}|g; s|__EXT_CLIENT_ID__|${EXT_CLIENT_ID}|g; s|__CORP_CLIENT_ID__|${CORP_CLIENT_ID}|g" \
   k8s/auth-mesh.tmpl.yaml > /tmp/auth-mesh.yaml
