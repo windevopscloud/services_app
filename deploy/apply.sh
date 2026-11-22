@@ -90,3 +90,13 @@ for SVC in portal-ext portal-corp extsvc1 extsvc2 intsvc1 intsvc2 corpsvc1 corps
   kubectl rollout status deployment/"${SVC}" -n apps --timeout=300s
 done
 kubectl get pods -n apps
+
+echo "=== Porkbun CNAME targets ==="
+for i in $(seq 1 30); do
+  ALB=$(kubectl get ingress outsvc -A -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
+  [ -z "$ALB" ] && ALB=$(kubectl get ingress -A -o jsonpath='{.items[?(@.metadata.name=="outsvc")].status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
+  [ -n "$ALB" ] && break
+  sleep 10
+done
+echo "outsvc.windevopscloud.com -> ${ALB:-not ready yet}"
+kubectl get ingress -A
