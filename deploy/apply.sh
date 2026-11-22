@@ -4,6 +4,7 @@ export HOME=/root
 export KUBECONFIG=/root/.kube/config
 
 kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/ingress-gw.yaml
 
 # Client credentials for the two services that call the public extsvc (Secrets Manager -> k8s secret)
 source deploy/portal.env
