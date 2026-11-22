@@ -1,16 +1,16 @@
-# Public ALB for extsvc.windevopscloud.com -> ingress-pub gateway pods (HTTPS to the pod, self-signed, ALB does not verify).
+# Public ALB for outsvc.windevopscloud.com -> ingress-pub gateway pods (HTTPS to the pod, self-signed, ALB does not verify).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: extsvc
+  name: outsvc
   namespace: istio-ingress-pub
   annotations:
-    alb.ingress.kubernetes.io/load-balancer-name: poc-extsvc-alb
+    alb.ingress.kubernetes.io/load-balancer-name: poc-outsvc-alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
-    alb.ingress.kubernetes.io/certificate-arn: __EXTSVC_CERT_ARN__
+    alb.ingress.kubernetes.io/certificate-arn: __OUTSVC_CERT_ARN__
     alb.ingress.kubernetes.io/backend-protocol: HTTPS
     alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
     alb.ingress.kubernetes.io/healthcheck-port: "15021"
@@ -19,7 +19,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: extsvc.windevopscloud.com
+    - host: outsvc.windevopscloud.com
       http:
         paths:
           - path: /

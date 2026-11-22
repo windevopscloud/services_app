@@ -40,9 +40,9 @@ spec:
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: allow-intsvc1, namespace: apps }
+metadata: { name: allow-extsvc1, namespace: apps }
 spec:
-  selector: { matchLabels: { app: intsvc1 } }
+  selector: { matchLabels: { app: extsvc1 } }
   action: ALLOW
   rules:
   - from:
@@ -55,9 +55,9 @@ spec:
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: allow-intsvc2, namespace: apps }
+metadata: { name: allow-extsvc2, namespace: apps }
 spec:
-  selector: { matchLabels: { app: intsvc2 } }
+  selector: { matchLabels: { app: extsvc2 } }
   action: ALLOW
   rules:
   - from:
@@ -100,15 +100,15 @@ spec:
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: allow-extsvc1, namespace: apps }
+metadata: { name: allow-outsvc1, namespace: apps }
 spec:
-  selector: { matchLabels: { app: extsvc1 } }
+  selector: { matchLabels: { app: outsvc1 } }
   action: ALLOW
   rules:
   - from:
     - source:
         principals:
-        - "cluster.local/ns/apps/sa/intsvc3"
+        - "cluster.local/ns/apps/sa/intsvc1"
         - "cluster.local/ns/istio-ingress-pub/sa/ingress-pub"
     to:
     - operation:
@@ -116,15 +116,15 @@ spec:
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: allow-extsvc2, namespace: apps }
+metadata: { name: allow-outsvc2, namespace: apps }
 spec:
-  selector: { matchLabels: { app: extsvc2 } }
+  selector: { matchLabels: { app: outsvc2 } }
   action: ALLOW
   rules:
   - from:
     - source:
         principals:
-        - "cluster.local/ns/apps/sa/intsvc4"
+        - "cluster.local/ns/apps/sa/intsvc2"
         - "cluster.local/ns/istio-ingress-pub/sa/ingress-pub"
     to:
     - operation:

@@ -1,18 +1,18 @@
 apiVersion: networking.istio.io/v1
 kind: VirtualService
-metadata: { name: intsvc-routes, namespace: apps }
+metadata: { name: extsvc-routes, namespace: apps }
 spec:
-  hosts: ["intsvc.windevopscloud.com"]
+  hosts: ["extsvc.windevopscloud.com"]
   gateways: ["istio-ingress-ext/ext-gw"]
   http:
-  - match: [{ uri: { prefix: /api/intsvc1 } }]
+  - match: [{ uri: { prefix: /api/extsvc1 } }]
     rewrite: { uri: / }
     headers: { request: { set: { x-origin: ext } } }
-    route: [{ destination: { host: intsvc1, port: { number: 8080 } } }]
-  - match: [{ uri: { prefix: /api/intsvc2 } }]
+    route: [{ destination: { host: extsvc1, port: { number: 8080 } } }]
+  - match: [{ uri: { prefix: /api/extsvc2 } }]
     rewrite: { uri: / }
     headers: { request: { set: { x-origin: ext } } }
-    route: [{ destination: { host: intsvc2, port: { number: 8080 } } }]
+    route: [{ destination: { host: extsvc2, port: { number: 8080 } } }]
   - route: [{ destination: { host: portal-ext, port: { number: 8080 } } }]
 ---
 apiVersion: networking.istio.io/v1
@@ -34,14 +34,14 @@ spec:
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
-metadata: { name: extsvc-routes, namespace: apps }
+metadata: { name: outsvc-routes, namespace: apps }
 spec:
-  hosts: ["extsvc.windevopscloud.com"]
+  hosts: ["outsvc.windevopscloud.com"]
   gateways: ["istio-ingress-pub/pub-gw"]
   http:
-  - match: [{ uri: { prefix: /api/extsvc1 } }]
+  - match: [{ uri: { prefix: /api/outsvc1 } }]
     rewrite: { uri: / }
-    route: [{ destination: { host: extsvc1, port: { number: 8080 } } }]
-  - match: [{ uri: { prefix: /api/extsvc2 } }]
+    route: [{ destination: { host: outsvc1, port: { number: 8080 } } }]
+  - match: [{ uri: { prefix: /api/outsvc2 } }]
     rewrite: { uri: / }
-    route: [{ destination: { host: extsvc2, port: { number: 8080 } } }]
+    route: [{ destination: { host: outsvc2, port: { number: 8080 } } }]

@@ -1,8 +1,8 @@
-# extsvc is public (ALB), so it must only accept requests that carry a valid Cognito token
+# outsvc is public (ALB), so it must only accept requests that carry a valid Cognito token
 # issued to the calling service (client credentials). Checked at the ingress-pub gateway.
 apiVersion: security.istio.io/v1
 kind: RequestAuthentication
-metadata: { name: extsvc-jwt, namespace: istio-ingress-pub }
+metadata: { name: outsvc-jwt, namespace: istio-ingress-pub }
 spec:
   selector: { matchLabels: { istio: ingress-pub } }
   jwtRules:
@@ -11,16 +11,16 @@ spec:
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: extsvc-require-token, namespace: istio-ingress-pub }
+metadata: { name: outsvc-require-token, namespace: istio-ingress-pub }
 spec:
   selector: { matchLabels: { istio: ingress-pub } }
   action: ALLOW
   rules:
   - to:
-    - operation: { paths: ["/api/extsvc1", "/api/extsvc1/*"] }
+    - operation: { paths: ["/api/outsvc1", "/api/outsvc1/*"] }
     when:
-    - { key: "request.auth.claims[scope]", values: ["ext-api/extsvc1.invoke"] }
+    - { key: "request.auth.claims[scope]", values: ["ext-api/outsvc1.invoke"] }
   - to:
-    - operation: { paths: ["/api/extsvc2", "/api/extsvc2/*"] }
+    - operation: { paths: ["/api/outsvc2", "/api/outsvc2/*"] }
     when:
-    - { key: "request.auth.claims[scope]", values: ["ext-api/extsvc2.invoke"] }
+    - { key: "request.auth.claims[scope]", values: ["ext-api/outsvc2.invoke"] }

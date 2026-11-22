@@ -1,4 +1,4 @@
-# intsvc3 / intsvc4 accept a call only when BOTH hold:
+# intsvc1 / intsvc2 accept a call only when BOTH hold:
 #  1) it comes from the expected caller identity (mTLS service account), and
 #  2) it carries a valid Cognito access token issued to the portal client of that side (ext or corp).
 # Signing keys are embedded (nodes have no internet to fetch them).
@@ -16,13 +16,13 @@ spec:
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: allow-intsvc3, namespace: apps }
+metadata: { name: allow-intsvc1, namespace: apps }
 spec:
-  selector: { matchLabels: { app: intsvc3 } }
+  selector: { matchLabels: { app: intsvc1 } }
   action: ALLOW
   rules:
   - from:
-    - source: { principals: ["cluster.local/ns/apps/sa/intsvc1"] }
+    - source: { principals: ["cluster.local/ns/apps/sa/extsvc1"] }
     to:
     - operation: { methods: ["GET", "POST"] }
     when:
@@ -36,13 +36,13 @@ spec:
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: allow-intsvc4, namespace: apps }
+metadata: { name: allow-intsvc2, namespace: apps }
 spec:
-  selector: { matchLabels: { app: intsvc4 } }
+  selector: { matchLabels: { app: intsvc2 } }
   action: ALLOW
   rules:
   - from:
-    - source: { principals: ["cluster.local/ns/apps/sa/intsvc2"] }
+    - source: { principals: ["cluster.local/ns/apps/sa/extsvc2"] }
     to:
     - operation: { methods: ["GET", "POST"] }
     when:

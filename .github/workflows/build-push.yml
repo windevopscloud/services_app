@@ -16,7 +16,7 @@ env:
   AWS_REGION: us-east-1
   AWS_DEFAULT_REGION: us-east-1
   ENVIRONMENT: poc
-  SERVICES: "intsvc1 intsvc2 intsvc3 intsvc4 corpsvc1 corpsvc2 extsvc1 extsvc2"
+  SERVICES: "extsvc1 extsvc2 intsvc1 intsvc2 corpsvc1 corpsvc2 outsvc1 outsvc2"
 
 jobs:
   build:
@@ -73,13 +73,13 @@ jobs:
           EXT_DOMAIN=$(ssm ext/domain)
           CORP_CLIENT_ID=$(ssm corp/web-client-id)
           CORP_DOMAIN=$(ssm corp/domain)
-          EXTSVC_CERT_ARN=$(aws ssm get-parameter --name "/${ENVIRONMENT}/acm/extsvc-cert-arn" --query Parameter.Value --output text)
+          OUTSVC_CERT_ARN=$(aws ssm get-parameter --name "/${ENVIRONMENT}/acm/outsvc-cert-arn" --query Parameter.Value --output text)
           EXT_ISSUER=$(ssm ext/issuer)
           CORP_ISSUER=$(ssm corp/issuer)
           curl -fsS "${EXT_ISSUER}/.well-known/jwks.json"  | tr -d '\n' > deploy/ext-jwks.json
           curl -fsS "${CORP_ISSUER}/.well-known/jwks.json" | tr -d '\n' > deploy/corp-jwks.json
-          printf 'EXT_CLIENT_ID=%s\nEXT_DOMAIN=%s\nCORP_CLIENT_ID=%s\nCORP_DOMAIN=%s\nEXTSVC_CERT_ARN=%s\nEXT_ISSUER=%s\nCORP_ISSUER=%s\n' \
-            "$EXT_CLIENT_ID" "$EXT_DOMAIN" "$CORP_CLIENT_ID" "$CORP_DOMAIN" "$EXTSVC_CERT_ARN" "$EXT_ISSUER" "$CORP_ISSUER" > deploy/portal.env
+          printf 'EXT_CLIENT_ID=%s\nEXT_DOMAIN=%s\nCORP_CLIENT_ID=%s\nCORP_DOMAIN=%s\nOUTSVC_CERT_ARN=%s\nEXT_ISSUER=%s\nCORP_ISSUER=%s\n' \
+            "$EXT_CLIENT_ID" "$EXT_DOMAIN" "$CORP_CLIENT_ID" "$CORP_DOMAIN" "$OUTSVC_CERT_ARN" "$EXT_ISSUER" "$CORP_ISSUER" > deploy/portal.env
           BUCKET="bundles-${ACCOUNT_ID}-${ENVIRONMENT}"
           KEY="releases/services-app/${TAG}-${GITHUB_RUN_NUMBER}.tgz"
           echo "BUCKET=${BUCKET}" >> "$GITHUB_ENV"
