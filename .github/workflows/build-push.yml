@@ -13,8 +13,8 @@ on:
     paths: ["services/**", "portal/**"]
 
 env:
-  AWS_REGION: us-east-1
-  AWS_DEFAULT_REGION: us-east-1
+  AWS_REGION: us-west-2
+  AWS_DEFAULT_REGION: us-west-2
   ENVIRONMENT: poc
   SERVICES: "extsvc1 extsvc2 intsvc1 intsvc2 corpsvc1 corpsvc2 outsvc1 outsvc2"
 

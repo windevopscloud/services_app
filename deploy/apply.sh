@@ -8,7 +8,7 @@ kubectl apply -f k8s/ingress-gw.yaml
 
 # Client credentials for the two services that call the public outsvc (Secrets Manager -> k8s secret)
 source deploy/portal.env
-CLIENTS=$(aws secretsmanager get-secret-value --secret-id "cognito/poc/external-clients" --region us-east-1 --query SecretString --output text)
+CLIENTS=$(aws secretsmanager get-secret-value --secret-id "cognito/poc/external-clients" --region us-west-2 --query SecretString --output text)
 for S in intsvc1 intsvc2; do
   case "$S" in intsvc1) SC="ext-api/outsvc1.invoke" ;; intsvc2) SC="ext-api/outsvc2.invoke" ;; esac
   CID=$(echo "$CLIENTS" | python3 -c "import sys,json;print(json.load(sys.stdin)['$S']['client_id'])")
