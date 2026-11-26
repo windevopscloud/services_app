@@ -1,4 +1,4 @@
-# Public ALB for outsvc.windevopscloud.com -> ingress-pub gateway pods (HTTPS to the pod, self-signed, ALB does not verify).
+# Public ALB for outapi.windevopscloud.com -> ingress-pub gateway pods (HTTPS to the pod, self-signed, ALB does not verify).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -19,7 +19,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: outsvc.windevopscloud.com
+    - host: outapi.windevopscloud.com
       http:
         paths:
           - path: /

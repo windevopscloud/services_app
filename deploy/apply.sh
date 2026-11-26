@@ -98,5 +98,5 @@ for i in $(seq 1 30); do
   [ -n "$ALB" ] && break
   sleep 10
 done
-echo "outsvc.windevopscloud.com -> ${ALB:-not ready yet}"
+echo "outapi.windevopscloud.com -> ${ALB:-not ready yet}"
 kubectl get ingress -A

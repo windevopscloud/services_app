@@ -1,11 +1,11 @@
 # Calls from intsvc1/intsvc2 to outsvc with x-origin "ext" leave the cluster:
-#   app -> sidecar -> (mTLS) egress gateway -> TLS to the public ALB at outsvc.windevopscloud.com
+#   app -> sidecar -> (mTLS) egress gateway -> TLS to the public ALB at outapi.windevopscloud.com
 # x-origin "corp" keeps going straight over the mesh. Everything else outbound is blocked (REGISTRY_ONLY).
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata: { name: outsvc-public, namespace: istio-egress }
 spec:
-  hosts: ["outsvc.windevopscloud.com"]
+  hosts: ["outapi.windevopscloud.com"]
   location: MESH_EXTERNAL
   resolution: DNS
   ports:
@@ -30,7 +30,7 @@ spec:
   selector: { istio: egress-gw }
   servers:
   - port: { number: 443, name: tls-mtls, protocol: HTTPS }
-    hosts: ["outsvc.windevopscloud.com"]
+    hosts: ["outapi.windevopscloud.com"]
     tls: { mode: ISTIO_MUTUAL }
 ---
 # sidecar -> egress gateway over mTLS
@@ -40,27 +40,27 @@ metadata: { name: to-egress-gw, namespace: istio-egress }
 spec:
   host: egress-gw.istio-egress.svc.cluster.local
   trafficPolicy:
-    tls: { mode: ISTIO_MUTUAL, sni: outsvc.windevopscloud.com }
+    tls: { mode: ISTIO_MUTUAL, sni: outapi.windevopscloud.com }
 ---
 # egress gateway -> public ALB (TLS origination)
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata: { name: originate-tls, namespace: istio-egress }
 spec:
-  host: outsvc.windevopscloud.com
+  host: outapi.windevopscloud.com
   trafficPolicy:
     portLevelSettings:
     - port: { number: 80 }
-      tls: { mode: SIMPLE, sni: outsvc.windevopscloud.com }
+      tls: { mode: SIMPLE, sni: outapi.windevopscloud.com }
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata: { name: egress-to-external, namespace: istio-egress }
 spec:
-  hosts: ["outsvc.windevopscloud.com"]
+  hosts: ["outapi.windevopscloud.com"]
   gateways: ["istio-egress/egress-gw-gateway"]
   http:
-  - route: [{ destination: { host: outsvc.windevopscloud.com, port: { number: 80 } } }]
+  - route: [{ destination: { host: outapi.windevopscloud.com, port: { number: 80 } } }]
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -69,7 +69,7 @@ spec:
   hosts: ["outsvc1.apps.svc.cluster.local"]
   http:
   - match: [{ headers: { x-origin: { exact: ext } } }]
-    rewrite: { uri: /api/outsvc1, authority: outsvc.windevopscloud.com }
+    rewrite: { uri: /api/outsvc1, authority: outapi.windevopscloud.com }
     route: [{ destination: { host: egress-gw.istio-egress.svc.cluster.local, port: { number: 443 } } }]
   - route: [{ destination: { host: outsvc1.apps.svc.cluster.local, port: { number: 8080 } } }]
 ---
@@ -80,6 +80,6 @@ spec:
   hosts: ["outsvc2.apps.svc.cluster.local"]
   http:
   - match: [{ headers: { x-origin: { exact: ext } } }]
-    rewrite: { uri: /api/outsvc2, authority: outsvc.windevopscloud.com }
+    rewrite: { uri: /api/outsvc2, authority: outapi.windevopscloud.com }
     route: [{ destination: { host: egress-gw.istio-egress.svc.cluster.local, port: { number: 443 } } }]
   - route: [{ destination: { host: outsvc2.apps.svc.cluster.local, port: { number: 8080 } } }]

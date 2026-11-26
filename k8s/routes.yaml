@@ -2,7 +2,7 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata: { name: extsvc-routes, namespace: apps }
 spec:
-  hosts: ["extsvc.windevopscloud.com"]
+  hosts: ["extapi.windevopscloud.com"]
   gateways: ["istio-ingress-ext/ext-gw"]
   http:
   - match: [{ uri: { prefix: /api/extsvc1 } }]
@@ -19,7 +19,7 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata: { name: corpsvc-routes, namespace: apps }
 spec:
-  hosts: ["corpsvc.windevopscloud.com"]
+  hosts: ["corpapi.windevopscloud.com"]
   gateways: ["istio-ingress-corp/corp-gw"]
   http:
   - match: [{ uri: { prefix: /api/corpsvc1 } }]
@@ -36,7 +36,7 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata: { name: outsvc-routes, namespace: apps }
 spec:
-  hosts: ["outsvc.windevopscloud.com"]
+  hosts: ["outapi.windevopscloud.com"]
   gateways: ["istio-ingress-pub/pub-gw"]
   http:
   - match: [{ uri: { prefix: /api/outsvc1 } }]

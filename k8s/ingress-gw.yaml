@@ -5,7 +5,7 @@ spec:
   selector: { istio: ingress-ext }
   servers:
   - port: { number: 443, name: https, protocol: HTTPS }
-    hosts: ["extsvc.windevopscloud.com"]
+    hosts: ["extapi.windevopscloud.com"]
     tls: { mode: SIMPLE, credentialName: ext-tls }
 ---
 apiVersion: networking.istio.io/v1
@@ -15,7 +15,7 @@ spec:
   selector: { istio: ingress-corp }
   servers:
   - port: { number: 443, name: https, protocol: HTTPS }
-    hosts: ["corpsvc.windevopscloud.com"]
+    hosts: ["corpapi.windevopscloud.com"]
     tls: { mode: SIMPLE, credentialName: corp-tls }
 ---
 apiVersion: networking.istio.io/v1
@@ -26,4 +26,4 @@ spec:
   servers:
   - port: { number: 443, name: https, protocol: HTTPS }
     hosts: ["*"]
-    tls: { mode: SIMPLE, credentialName: pub-tls }
+    tls: { mode: SIMPLE, credentialName: pub-tls }
